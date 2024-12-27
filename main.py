@@ -41,7 +41,7 @@ def generate_ai_recommendations(user_info):
     """Generate AI-based food recommendations."""
     client = OpenAI(
         base_url="https://openrouter.ai/api/v1",
-        api_key="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",
+        api_key="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",
     )
     completion = client.chat.completions.create(
         model="meta-llama/llama-3.2-3b-instruct:free",
