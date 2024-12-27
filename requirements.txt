@@ -4,3 +4,4 @@ numpy
 fpdf
 openai
 dotenv
+python-dotenv
