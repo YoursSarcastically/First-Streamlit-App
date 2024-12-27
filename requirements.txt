@@ -3,4 +3,4 @@ pandas
 numpy
 fpdf
 openai
-
+dotenv
