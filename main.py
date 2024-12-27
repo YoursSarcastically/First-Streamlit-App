@@ -4,6 +4,9 @@ import numpy as np
 from fpdf import FPDF
 import openai
 import os
+from dotenv import load_dotenv
+load_dotenv()
+
 
 # Set page config
 st.set_page_config(
