@@ -2,7 +2,8 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 from fpdf import FPDF
-from openai import OpenAI
+import openai
+import os
 
 # Set page config
 st.set_page_config(
@@ -39,24 +40,30 @@ def get_bmi_emoji(category):
 
 def generate_ai_recommendations(user_info):
     """Generate AI-based food recommendations."""
-    client = OpenAI(
-        base_url="https://openrouter.ai/api/v1",
-        api_key= "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",
-    )
-    completion = client.chat.completions.create(
-        model="meta-llama/llama-3.2-3b-instruct:free",
-        messages=[
-            {
-                "role": "user",
-                "content": f"Generate a 7-day Indian homely food only (dinner, lunch, and breakfast) recommendation for a {user_info['age']} years old, {user_info['gender']} with a goal to {user_info['fitness_goal']} and prefer {user_info['veg_pref']} food."
-            }
-        ]
-    )
-    return completion.choices[0].message.content
+    api_key = os.getenv("OPENAI_API_KEY")  # Use environment variable for security
+
+    if not api_key:
+        st.error("API key not found. Please set the OPENAI_API_KEY environment variable.")
+        return ""
+
+    openai.api_key = api_key
+
+    try:
+        response = openai.Completion.create(
+            model="text-davinci-003",  # Change model if necessary
+            prompt=f"Generate a 7-day Indian homely food only (dinner, lunch, and breakfast) recommendation for a {user_info['age']} years old, {user_info['gender']} with a goal to {user_info['fitness_goal']} and prefer {user_info['veg_pref']} food.",
+            max_tokens=500
+        )
+        return response.choices[0].text.strip()
+    except openai.error.AuthenticationError:
+        st.error("Authentication failed. Please check your API key.")
+        return ""
+    except Exception as e:
+        st.error(f"An error occurred: {e}")
+        return ""
 
 def generate_meal_plan(calorie_target, veg_pref, meal_preferences):
     """Generate a meal plan based on calorie target and meal distributions."""
-    # Placeholder for actual logic without CSV data
     meal_data = [
         {"Recipe_name": "Veg Pulao", "Category": "Lunch", "Calories (kcal)": 300},
         {"Recipe_name": "Idli Sambar", "Category": "Breakfast", "Calories (kcal)": 200},
@@ -201,6 +208,11 @@ if st.button("✨ Bana do mera acha khaana!"):
         st.header("🔎 Here's your Acha Khaana!")
         st.write(f"Here are some meal suggestions based on your preferences: {ai_recommendations}")
 
-        meal_plan = generate_meal_plan
+        meal_plan = generate_meal_plan(calorie_target, veg_pref, meal_preferences)
+        if not meal_plan.empty:
+            st.write(meal_plan)
+        else:
+            st.write("Sorry, we couldn't generate a meal plan at this time.")
+
 st.markdown("---")
 st.markdown("### Made with ❤️ by [Suraj Sharma](https://www.linkedin.com/in/surajsharma97/)")
